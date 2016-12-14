@@ -239,7 +239,6 @@ public class SlotMachines {
                 } else {
                     if (LocationUtil.getTextRaw(topLeftSign, 0).contains("SLOT MACHINE")) {
                         frames = Lists.reverse(frames);
-                        System.out.println(topRightSign.getKeys().toString());
                         UUID ownerUUID = topRightSign.get(SlotMachineKeys.SLOT_MACHINE_OWNER).orElse(null);
                         if (ownerUUID == null) {
                             player.sendMessage(getMessage("slots.missing-data"));
