@@ -61,6 +61,11 @@ public class SlotMachineOwnerData extends AbstractSingleData<UUID, SlotMachineOw
     }
 
     @Override
+    public DataContainer toContainer() {
+        return super.toContainer().set(SlotMachineKeys.SLOT_MACHINE_OWNER, getValue());
+    }
+
+    @Override
     public int getContentVersion() {
         return 1;
     }
