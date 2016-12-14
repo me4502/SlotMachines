@@ -30,7 +30,6 @@ import org.spongepowered.api.event.block.InteractBlockEvent;
 import org.spongepowered.api.event.cause.Cause;
 import org.spongepowered.api.event.entity.InteractEntityEvent;
 import org.spongepowered.api.event.filter.cause.First;
-import org.spongepowered.api.event.game.state.GameAboutToStartServerEvent;
 import org.spongepowered.api.event.game.state.GamePreInitializationEvent;
 import org.spongepowered.api.event.game.state.GameStartedServerEvent;
 import org.spongepowered.api.item.ItemTypes;
@@ -73,23 +72,23 @@ public class SlotMachines {
     private Logger logger;
 
     @Inject
-    public PluginContainer container;
+    private PluginContainer container;
 
     @Inject
     @DefaultConfig(sharedRoot = false)
-    public Path defaultConfig;
+    private Path defaultConfig;
 
     @Inject
     @DefaultConfig(sharedRoot = false)
     private ConfigurationLoader<CommentedConfigurationNode> configManager;
 
-    public ConfigValue<List<ItemStack>> items = new ConfigValue<>("items", "The items that can appear on the slot machine", Lists.newArrayList(
+    private ConfigValue<List<ItemStack>> items = new ConfigValue<>("items", "The items that can appear on the slot machine", Lists.newArrayList(
             ItemStack.of(ItemTypes.GOLD_INGOT, 1), ItemStack.of(ItemTypes.GOLDEN_APPLE, 1), ItemStack.of(ItemTypes.DIAMOND_ORE, 1), ItemStack.of(ItemTypes.EMERALD_ORE, 1),
             ItemStack.of(ItemTypes.GOLD_ORE, 1), ItemStack.of(ItemTypes.IRON_ORE, 1), ItemStack.of(ItemTypes.COAL_ORE, 1), ItemStack.of(ItemTypes.APPLE, 1), ItemStack.of(ItemTypes.STICK, 1),
             ItemStack.of(ItemTypes.FISH, 1), ItemStack.of(ItemTypes.DIRT, 1)
     ), new TypeToken<List<ItemStack>>() {});
 
-    public ConfigValue<List<FactorData>> factors = new ConfigValue<>("factors", "The factors", Lists.newArrayList(
+    private ConfigValue<List<FactorData>> factors = new ConfigValue<>("factors", "The factors", Lists.newArrayList(
         new FactorData(ItemStack.of(ItemTypes.GOLD_INGOT, 3), 1666.0), new FactorData(ItemStack.of(ItemTypes.GOLDEN_APPLE, 3), 300.0),
         new FactorData(ItemStack.of(ItemTypes.DIAMOND_ORE, 3), 100.0), new FactorData(ItemStack.of(ItemTypes.EMERALD_ORE, 3), 50.0),
         new FactorData(ItemStack.of(ItemTypes.GOLD_ORE, 3), 25.0), new FactorData(ItemStack.of(ItemTypes.IRON_ORE, 3), 12.0),
@@ -97,7 +96,7 @@ public class SlotMachines {
         new FactorData(ItemStack.of(ItemTypes.APPLE, 1), 1.0)
     ), new TypeToken<List<FactorData>>() {});
 
-    public ConfigValue<List<SlotTier>> slotTiers = new ConfigValue<>("tiers", "The slot tiers", Lists.newArrayList(
+    private ConfigValue<List<SlotTier>> slotTiers = new ConfigValue<>("tiers", "The slot tiers", Lists.newArrayList(
             new SlotTier(BlockState.builder().blockType(BlockTypes.IRON_BLOCK).build(), 1.0d),
             new SlotTier(BlockState.builder().blockType(BlockTypes.GOLD_BLOCK).build(), 2.5d),
             new SlotTier(BlockState.builder().blockType(BlockTypes.DIAMOND_BLOCK).build(), 5.0d)
@@ -364,18 +363,18 @@ public class SlotMachines {
         });
     }
 
-    public ItemFrame getItemFrame(Location<?> location) {
+    private ItemFrame getItemFrame(Location<?> location) {
         return location.getExtent().getEntities().stream()
                 .filter(entity -> entity.getLocation().getBlockPosition().equals(location.getBlockPosition()))
                 .filter(entity -> entity.getType() == EntityTypes.ITEM_FRAME)
                 .map(entity -> (ItemFrame) entity).findFirst().orElse(null);
     }
 
-    public Optional<SlotTier> getTier(Location<?> location) {
+    private Optional<SlotTier> getTier(Location<?> location) {
         return slotTiers.getValue().stream().filter(tier -> location.getBlock().equals(tier.getBlockState())).findFirst();
     }
 
-    public Optional<FactorData> getFactor(List<ItemStack> results) {
+    private Optional<FactorData> getFactor(List<ItemStack> results) {
         FactorData bestMatch = null;
         for (FactorData data : factors.getValue()) {
             if (data.matches(results)) {
@@ -388,7 +387,7 @@ public class SlotMachines {
         return Optional.ofNullable(bestMatch);
     }
 
-    public FactorData getHighestFactor() {
+    private FactorData getHighestFactor() {
         FactorData bestMatch = null;
         for (FactorData data : factors.getValue()) {
             if (bestMatch == null || bestMatch.getMultiplier() < data.getMultiplier()) {
@@ -399,11 +398,11 @@ public class SlotMachines {
         return bestMatch;
     }
 
-    public Text getMessage(String message) {
+    private Text getMessage(String message) {
         return TextSerializers.FORMATTING_CODE.deserialize(messagesNode.getNode((Object[]) message.split("\\.")).getString("Unknown message"));
     }
 
-    public Text getMessage(String message, Function<String, String> replacer) {
+    private Text getMessage(String message, Function<String, String> replacer) {
         String replaced = replacer.apply(messagesNode.getNode((Object[]) message.split("\\.")).getString("Unknown message: " + message));
         return TextSerializers.FORMATTING_CODE.deserialize(replaced);
     }
