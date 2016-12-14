@@ -283,6 +283,7 @@ public class SlotMachines {
                                 double finalPrice1 = price;
                                 Sponge.getScheduler().createTaskBuilder().intervalTicks(8).execute(new Consumer<Task>() {
                                     int startingFrame = 0;
+                                    int timeSinceChange = 0;
 
                                     @Override
                                     public void accept(Task task) {
@@ -311,9 +312,11 @@ public class SlotMachines {
                                             for (int i = startingFrame; i < finalFrames.size(); i++) {
                                                 ItemFrame frame = finalFrames.get(i);
                                                 frame.offer(Keys.REPRESENTED_ITEM, items.getValue().get(ThreadLocalRandom.current().nextInt(items.getValue().size())).createSnapshot());
-                                                if (ThreadLocalRandom.current().nextInt(10) == 0) {
+                                                if (timeSinceChange >= 10 || (timeSinceChange > 5 && ThreadLocalRandom.current().nextInt(5) == 0)) {
                                                     startingFrame ++;
+                                                    timeSinceChange = 0;
                                                 }
+                                                timeSinceChange ++;
                                             }
                                         }
                                     }
