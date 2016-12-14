@@ -348,7 +348,7 @@ public class SlotMachines {
                                 if (account.withdraw(economyService.getDefaultCurrency(), BigDecimal.valueOf(paymentPrice), Cause.source(container).build()).getResult() != ResultType.SUCCESS) {
                                     player.sendMessage(getMessage("slots.insufficient-funds", string -> string.replace("{amount}", String.valueOf(paymentPrice))));
                                 } else {
-                                    topRightSign.offer(Keys.SIGN_LINES, Lists.newArrayList(Text.of(TextColors.BLUE, "Price"), Text.of(TextColors.RED, price), Text.EMPTY, Text.of(lowerLimit)));
+                                    topRightSign.offer(Keys.SIGN_LINES, Lists.newArrayList(Text.of(TextColors.BLUE, "Price"), Text.of(TextColors.RED, price), Text.of(TextColors.BLUE, "Limit"), Text.of(TextColors.RED, lowerLimit)));
                                     topLeftSign.offer(Keys.SIGN_LINES, Lists.newArrayList(Text.of(TextColors.LIGHT_PURPLE, "SLOT MACHINE"), Text.EMPTY, Text.EMPTY, Text.EMPTY));
 
                                     SlotMachineOwnerData slotMachineOwnerData = new SlotMachineOwnerData(player.getUniqueId());
