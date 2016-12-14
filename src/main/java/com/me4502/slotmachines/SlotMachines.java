@@ -28,6 +28,7 @@ import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.block.InteractBlockEvent;
 import org.spongepowered.api.event.cause.Cause;
+import org.spongepowered.api.event.entity.InteractEntityEvent;
 import org.spongepowered.api.event.filter.cause.First;
 import org.spongepowered.api.event.game.state.GameAboutToStartServerEvent;
 import org.spongepowered.api.event.game.state.GamePreInitializationEvent;
@@ -148,6 +149,18 @@ public class SlotMachines {
     }
 
     @Listener
+    public void onEntityInteract(InteractEntityEvent event, @First Player player) {
+        if (event.getTargetEntity() instanceof ItemFrame) {
+            for (Location<?> location : lockedMachines) {
+                if (location.getBlockPosition().distance(event.getTargetEntity().getLocation().getBlockPosition()) < 5) {
+                    event.setCancelled(true);
+                    break;
+                }
+            }
+        }
+    }
+
+    @Listener
     public void onInteract(InteractBlockEvent.Secondary.MainHand event, @First Player player) {
         event.getTargetBlock().getLocation().filter(location -> location.getBlockType() == BlockTypes.STONE_BUTTON || location.getBlockType() == BlockTypes.WOODEN_BUTTON).ifPresent(location -> {
             getTier(LocationUtil.getBackBlock(location)).ifPresent(slotTier -> {
@@ -226,6 +239,7 @@ public class SlotMachines {
                 } else {
                     if (LocationUtil.getTextRaw(topLeftSign, 0).contains("SLOT MACHINE")) {
                         frames = Lists.reverse(frames);
+                        System.out.println(topRightSign.getKeys().toString());
                         UUID ownerUUID = topRightSign.get(SlotMachineKeys.SLOT_MACHINE_OWNER).orElse(null);
                         if (ownerUUID == null) {
                             player.sendMessage(getMessage("slots.missing-data"));
