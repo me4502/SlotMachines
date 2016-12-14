@@ -33,7 +33,7 @@ public class ImmutableSlotMachineOwnerData extends AbstractImmutableSingleData<U
 
     @Override
     public DataContainer toContainer() {
-        return super.toContainer().set(SlotMachineKeys.SLOT_MACHINE_OWNER, getValue());
+        return super.toContainer().set(SlotMachineKeys.SLOT_MACHINE_OWNER.getQuery(), getValue().toString());
     }
 
     @Override

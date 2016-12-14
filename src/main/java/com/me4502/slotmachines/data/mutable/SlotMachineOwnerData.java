@@ -15,7 +15,7 @@ import java.util.UUID;
 public class SlotMachineOwnerData extends AbstractSingleData<UUID, SlotMachineOwnerData, ImmutableSlotMachineOwnerData> {
 
     public SlotMachineOwnerData() {
-        this(UUID.randomUUID());
+        this(new UUID(0, 0));
     }
 
     public SlotMachineOwnerData(UUID value) {
@@ -62,7 +62,7 @@ public class SlotMachineOwnerData extends AbstractSingleData<UUID, SlotMachineOw
 
     @Override
     public DataContainer toContainer() {
-        return super.toContainer().set(SlotMachineKeys.SLOT_MACHINE_OWNER, getValue());
+        return super.toContainer().set(SlotMachineKeys.SLOT_MACHINE_OWNER.getQuery(), getValue().toString());
     }
 
     @Override
