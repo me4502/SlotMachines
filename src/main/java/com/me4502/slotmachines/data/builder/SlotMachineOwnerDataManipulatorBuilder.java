@@ -1,5 +1,6 @@
 package com.me4502.slotmachines.data.builder;
 
+import com.me4502.slotmachines.data.SlotMachineKeys;
 import com.me4502.slotmachines.data.immutable.ImmutableSlotMachineOwnerData;
 import com.me4502.slotmachines.data.mutable.SlotMachineOwnerData;
 import org.spongepowered.api.data.DataHolder;
@@ -9,6 +10,7 @@ import org.spongepowered.api.data.persistence.AbstractDataBuilder;
 import org.spongepowered.api.data.persistence.InvalidDataException;
 
 import java.util.Optional;
+import java.util.UUID;
 
 public class SlotMachineOwnerDataManipulatorBuilder extends AbstractDataBuilder<SlotMachineOwnerData> implements DataManipulatorBuilder<SlotMachineOwnerData, ImmutableSlotMachineOwnerData> {
 
@@ -28,6 +30,12 @@ public class SlotMachineOwnerDataManipulatorBuilder extends AbstractDataBuilder<
 
     @Override
     protected Optional<SlotMachineOwnerData> buildContent(DataView container) throws InvalidDataException {
-        return create().from(container.getContainer());
+        if(!container.contains(SlotMachineKeys.SLOT_MACHINE_OWNER.getQuery())) {
+            return Optional.empty();
+        }
+
+        UUID uuid = container.getObject(SlotMachineKeys.SLOT_MACHINE_OWNER.getQuery(), UUID.class).get();
+
+        return Optional.of(new SlotMachineOwnerData(uuid));
     }
 }
