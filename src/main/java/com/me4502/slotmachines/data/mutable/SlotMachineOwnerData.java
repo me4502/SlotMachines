@@ -44,7 +44,7 @@ public class SlotMachineOwnerData extends AbstractSingleData<UUID, SlotMachineOw
     @Override
     public Optional<SlotMachineOwnerData> from(DataContainer container) {
         if (container.contains(SlotMachineKeys.SLOT_MACHINE_OWNER.getQuery())) {
-            return Optional.of(set(SlotMachineKeys.SLOT_MACHINE_OWNER, container.getObject(SlotMachineKeys.SLOT_MACHINE_OWNER.getQuery(), UUID.class).orElse(getValue())));
+            return Optional.of(set(SlotMachineKeys.SLOT_MACHINE_OWNER, UUID.fromString(container.getString(SlotMachineKeys.SLOT_MACHINE_OWNER.getQuery()).orElse(getValue().toString()))));
         }
 
         return Optional.empty();

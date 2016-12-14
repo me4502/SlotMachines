@@ -30,6 +30,10 @@ public class SlotMachineOwnerDataManipulatorBuilder extends AbstractDataBuilder<
 
     @Override
     protected Optional<SlotMachineOwnerData> buildContent(DataView container) throws InvalidDataException {
-        return create().from(container.getContainer());
+        if (container.contains(SlotMachineKeys.SLOT_MACHINE_OWNER.getQuery())) {
+            UUID value = container.getString(SlotMachineKeys.SLOT_MACHINE_OWNER.getQuery()).map(UUID::fromString).orElse(new UUID(0, 0));
+            return Optional.of(new SlotMachineOwnerData(value));
+        }
+        return Optional.empty();
     }
 }
