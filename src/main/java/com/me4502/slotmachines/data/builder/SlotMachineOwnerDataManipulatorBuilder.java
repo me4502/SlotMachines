@@ -1,5 +1,6 @@
 package com.me4502.slotmachines.data.builder;
 
+import com.me4502.slotmachines.data.SlotMachineKeys;
 import com.me4502.slotmachines.data.immutable.ImmutableSlotMachineOwnerData;
 import com.me4502.slotmachines.data.mutable.SlotMachineOwnerData;
 import org.spongepowered.api.data.DataHolder;
@@ -9,6 +10,7 @@ import org.spongepowered.api.data.persistence.AbstractDataBuilder;
 import org.spongepowered.api.data.persistence.InvalidDataException;
 
 import java.util.Optional;
+import java.util.UUID;
 
 public class SlotMachineOwnerDataManipulatorBuilder extends AbstractDataBuilder<SlotMachineOwnerData> implements DataManipulatorBuilder<SlotMachineOwnerData, ImmutableSlotMachineOwnerData> {
 

@@ -28,7 +28,7 @@ public class ImmutableSlotMachineOwnerData extends AbstractImmutableSingleData<U
 
     @Override
     public SlotMachineOwnerData asMutable() {
-        return new SlotMachineOwnerData(getValue());
+        return new SlotMachineOwnerData(this.getValue());
     }
 
     @Override
