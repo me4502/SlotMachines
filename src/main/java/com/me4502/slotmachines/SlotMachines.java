@@ -244,6 +244,11 @@ public class SlotMachines {
                             return;
                         }
 
+                        if (player.getUniqueId().equals(ownerUUID)) {
+                            player.sendMessage(getMessage("slots.own-machine"));
+                            return;
+                        }
+
                         double price = 0;
                         try {
                             price = Double.parseDouble(LocationUtil.getTextRaw(topRightSign, 1));
@@ -304,7 +309,7 @@ public class SlotMachines {
                                             }
 
                                             Sponge.getScheduler().createTaskBuilder().delayTicks(20 * 3).execute(task1 -> {
-                                                finalFrames.forEach(frame -> frame.offer(Keys.REPRESENTED_ITEM, ItemStackSnapshot.NONE));
+                                                finalFrames.forEach(frame -> frame.remove(Keys.REPRESENTED_ITEM));
                                                 lockedMachines.remove(location);
                                             }).submit(container);
                                         } else {
