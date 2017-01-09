@@ -33,7 +33,7 @@ import java.util.Optional;
 
 public class SlotTierBuilder extends AbstractDataBuilder<SlotTier> implements DataBuilder<SlotTier> {
 
-    protected SlotTierBuilder() {
+    public SlotTierBuilder() {
         super(SlotTier.class, 1);
     }
 

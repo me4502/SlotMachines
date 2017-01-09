@@ -26,6 +26,7 @@ import com.google.common.collect.Sets;
 import com.google.common.reflect.TypeToken;
 import com.google.inject.Inject;
 import com.me4502.slotmachines.builder.FactorDataBuilder;
+import com.me4502.slotmachines.builder.SlotTierBuilder;
 import com.me4502.slotmachines.data.SlotMachineData;
 import com.me4502.slotmachines.data.SlotMachineKeys;
 import com.me4502.slotmachines.data.mutable.SlotMachineOwnerData;
@@ -131,6 +132,7 @@ public class SlotMachines {
     public void onServerStarting(GamePreInitializationEvent event) {
         SlotMachineData.registerData();
         Sponge.getDataManager().registerBuilder(FactorData.class, new FactorDataBuilder());
+        Sponge.getDataManager().registerBuilder(SlotTier.class, new SlotTierBuilder());
     }
 
     @Listener
