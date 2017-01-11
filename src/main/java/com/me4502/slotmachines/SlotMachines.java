@@ -54,6 +54,7 @@ import org.spongepowered.api.event.entity.InteractEntityEvent;
 import org.spongepowered.api.event.filter.cause.First;
 import org.spongepowered.api.event.game.state.GamePreInitializationEvent;
 import org.spongepowered.api.event.game.state.GameStartedServerEvent;
+import org.spongepowered.api.event.game.state.GameStoppingServerEvent;
 import org.spongepowered.api.item.ItemTypes;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
@@ -125,6 +126,7 @@ public class SlotMachines {
     ), new TypeToken<List<SlotTier>>() {});
 
     private ConfigurationNode messagesNode;
+    private ConfigurationNode defaultNode;
 
     private Set<Location<?>> lockedMachines = Sets.newHashSet();
 
@@ -137,27 +139,25 @@ public class SlotMachines {
 
     @Listener
     public void onServerStart(GameStartedServerEvent event) {
-        if (!new File(defaultConfig.toFile().getParentFile(), "messages.conf").exists()) {
-            URL jarConfigFile = this.getClass().getResource("messages.conf");
-            ConfigurationLoader<CommentedConfigurationNode> loader = HoconConfigurationLoader.builder().setURL(jarConfigFile).build();
-            ConfigurationLoader<CommentedConfigurationNode> fileLoader = HoconConfigurationLoader.builder().setFile(new File(defaultConfig.toFile().getParentFile(), "messages.conf")).build();
-            try {
-                fileLoader.save(loader.load());
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-    }
+        URL jarConfigFile = this.getClass().getResource("messages.conf");
 
-        ConfigurationLoader<CommentedConfigurationNode> fileLoader = HoconConfigurationLoader.builder().setFile(new File(defaultConfig.toFile().getParentFile(), "messages.conf")).build();
+        ConfigurationOptions options = ConfigurationOptions.defaults().setShouldCopyDefaults(true);
+
+        ConfigurationLoader<CommentedConfigurationNode> loader = HoconConfigurationLoader.builder().setURL(jarConfigFile).setDefaultOptions(options).build();
+        ConfigurationLoader<CommentedConfigurationNode> fileLoader = HoconConfigurationLoader.builder().setFile(new File(defaultConfig.toFile().getParentFile(), "messages.conf")).setDefaultOptions(options).build();
         try {
-            messagesNode = fileLoader.load();
+            messagesNode = fileLoader.load(options);
         } catch (IOException e) {
             e.printStackTrace();
         }
 
         try {
-            ConfigurationOptions options = ConfigurationOptions.defaults();
-            options.setShouldCopyDefaults(true);
+            defaultNode = loader.load(options);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        try {
             ConfigurationNode node = configManager.load(options);
 
             items.load(node);
@@ -165,6 +165,18 @@ public class SlotMachines {
             slotTiers.load(node);
 
             configManager.save(node);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Listener
+    public void onServerStopping(GameStoppingServerEvent event) {
+        ConfigurationOptions options = ConfigurationOptions.defaults().setShouldCopyDefaults(true);
+        ConfigurationLoader<CommentedConfigurationNode> fileLoader = HoconConfigurationLoader.builder().setFile(new File(defaultConfig.toFile().getParentFile(), "messages.conf")).setDefaultOptions(options).build();
+
+        try {
+            fileLoader.save(messagesNode);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -259,7 +271,7 @@ public class SlotMachines {
                 if (failed) {
                     player.sendMessage(getMessage("slots.invalid-slotmachine"));
                 } else {
-                    if (LocationUtil.getTextRaw(topLeftSign, 0).contains("SLOT MACHINE")) {
+                    if (topLeftSign.lines().get(0).equals(getMessage("slots.sign.title"))) {
                         frames = Lists.reverse(frames);
                         UUID ownerUUID = topRightSign.get(SlotMachineKeys.SLOT_MACHINE_OWNER).orElse(null);
                         if (ownerUUID == null) {
@@ -349,7 +361,7 @@ public class SlotMachines {
                                     }
                                 }).submit(container);
 
-                                topLeftSign.offer(Keys.SIGN_LINES, Lists.newArrayList(Text.of(TextColors.LIGHT_PURPLE, "SLOT MACHINE"), Text.EMPTY, Text.of(TextColors.YELLOW, "Last Player"), Text.of(TextColors.DARK_RED, player.getName())));
+                                topLeftSign.offer(Keys.SIGN_LINES, Lists.newArrayList(getMessage("slots.sign.title"), Text.EMPTY, getMessage("slots.sign.last-player"), Text.of(TextColors.DARK_RED, player.getName())));
                             }
                         }
                     } else {
@@ -377,8 +389,8 @@ public class SlotMachines {
                                 if (account.withdraw(economyService.getDefaultCurrency(), BigDecimal.valueOf(paymentPrice), Cause.source(container).build()).getResult() != ResultType.SUCCESS) {
                                     player.sendMessage(getMessage("slots.insufficient-funds", string -> string.replace("{amount}", String.valueOf(paymentPrice))));
                                 } else {
-                                    topRightSign.offer(Keys.SIGN_LINES, Lists.newArrayList(Text.of(TextColors.BLUE, "Price"), Text.of(TextColors.RED, price), Text.of(TextColors.BLUE, "Limit"), Text.of(TextColors.RED, lowerLimit)));
-                                    topLeftSign.offer(Keys.SIGN_LINES, Lists.newArrayList(Text.of(TextColors.LIGHT_PURPLE, "SLOT MACHINE"), Text.EMPTY, Text.EMPTY, Text.EMPTY));
+                                    topRightSign.offer(Keys.SIGN_LINES, Lists.newArrayList(getMessage("slots.sign.price"), Text.of(TextColors.RED, price), getMessage("slots.sign.limit"), Text.of(TextColors.RED, lowerLimit)));
+                                    topLeftSign.offer(Keys.SIGN_LINES, Lists.newArrayList(getMessage("slots.sign.title"), Text.EMPTY, Text.EMPTY, Text.EMPTY));
 
                                     SlotMachineOwnerData slotMachineOwnerData = new SlotMachineOwnerData(player.getUniqueId());
                                     topRightSign.offer(slotMachineOwnerData);
@@ -427,11 +439,13 @@ public class SlotMachines {
     }
 
     private Text getMessage(String message) {
-        return TextSerializers.FORMATTING_CODE.deserialize(messagesNode.getNode((Object[]) message.split("\\.")).getString("Unknown message"));
+        Object[] path = message.split("\\.");
+        return TextSerializers.FORMATTING_CODE.deserialize(messagesNode.getNode(path).getString(defaultNode.getNode(path).getString("Unknown Message: " + message)));
     }
 
     private Text getMessage(String message, Function<String, String> replacer) {
-        String replaced = replacer.apply(messagesNode.getNode((Object[]) message.split("\\.")).getString("Unknown message: " + message));
+        Object[] path = message.split("\\.");
+        String replaced = replacer.apply(messagesNode.getNode(path).getString(defaultNode.getNode(path).getString("Unknown Message: " + message)));
         return TextSerializers.FORMATTING_CODE.deserialize(replaced);
     }
 }
