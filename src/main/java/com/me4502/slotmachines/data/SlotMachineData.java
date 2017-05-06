@@ -21,14 +21,25 @@
  */
 package com.me4502.slotmachines.data;
 
+import com.me4502.slotmachines.SlotMachines;
 import com.me4502.slotmachines.data.builder.SlotMachineOwnerDataManipulatorBuilder;
 import com.me4502.slotmachines.data.immutable.ImmutableSlotMachineOwnerData;
 import com.me4502.slotmachines.data.mutable.SlotMachineOwnerData;
 import org.spongepowered.api.Sponge;
+import org.spongepowered.api.data.DataRegistration;
 
 public class SlotMachineData {
 
     public static void registerData() {
-        Sponge.getDataManager().register(SlotMachineOwnerData.class, ImmutableSlotMachineOwnerData.class, new SlotMachineOwnerDataManipulatorBuilder());
+        DataRegistration<SlotMachineOwnerData, ImmutableSlotMachineOwnerData> slowMachineOwnerData =
+                DataRegistration.<SlotMachineOwnerData, ImmutableSlotMachineOwnerData>builder()
+                        .dataClass(SlotMachineOwnerData.class)
+                        .immutableClass(ImmutableSlotMachineOwnerData.class)
+                        .builder(new SlotMachineOwnerDataManipulatorBuilder())
+                        .manipulatorId("slot_machine_owner")
+                        .dataName("SlotMachineOwner")
+                        .buildAndRegister(SlotMachines.instance.container);
+
+        Sponge.getDataManager().registerLegacyManipulatorIds("com.me4502.slotmachines.data.mutable.SlotMachineOwnerData", slowMachineOwnerData);
     }
 }
