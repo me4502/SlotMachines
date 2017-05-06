@@ -95,7 +95,7 @@ public class SlotMachines {
     private Logger logger;
 
     @Inject
-    private PluginContainer container;
+    public PluginContainer container;
 
     @Inject
     @DefaultConfig(sharedRoot = false)
@@ -104,6 +104,8 @@ public class SlotMachines {
     @Inject
     @DefaultConfig(sharedRoot = false)
     private ConfigurationLoader<CommentedConfigurationNode> configManager;
+
+    public static SlotMachines instance;
 
     private ConfigValue<List<ItemStack>> items = new ConfigValue<>("items", "The items that can appear on the slot machine", Lists.newArrayList(
             ItemStack.of(ItemTypes.GOLD_INGOT, 1), ItemStack.of(ItemTypes.GOLDEN_APPLE, 1), ItemStack.of(ItemTypes.DIAMOND_ORE, 1), ItemStack.of(ItemTypes.EMERALD_ORE, 1),
@@ -132,6 +134,7 @@ public class SlotMachines {
 
     @Listener
     public void onServerStarting(GamePreInitializationEvent event) {
+        instance = this;
         SlotMachineData.registerData();
         Sponge.getDataManager().registerBuilder(FactorData.class, new FactorDataBuilder());
         Sponge.getDataManager().registerBuilder(SlotTier.class, new SlotTierBuilder());
@@ -203,6 +206,7 @@ public class SlotMachines {
                     return;
                 }
                 boolean failed = false;
+                boolean message = false;
                 Location<?> newLocation = LocationUtil.getBackBlock(location);
                 Direction xDirection = LocationUtil.getRight(location);
                 Direction xOpposite = xDirection.getOpposite();
@@ -269,7 +273,9 @@ public class SlotMachines {
                 }
 
                 if (failed) {
-                    player.sendMessage(getMessage("slots.invalid-slotmachine"));
+                    if (message) {
+                        player.sendMessage(getMessage("slots.invalid-slotmachine"));
+                    }
                 } else {
                     if (topLeftSign.lines().get(0).equals(getMessage("slots.sign.title"))) {
                         frames = Lists.reverse(frames);
