@@ -107,6 +107,8 @@ public class SlotMachines {
 
     public static SlotMachines instance;
 
+    public static final UUID ADMIN_UUID = new UUID(0, 0);
+
     private ConfigValue<List<ItemStack>> items = new ConfigValue<>("items", "The items that can appear on the slot machine", Lists.newArrayList(
             ItemStack.of(ItemTypes.GOLD_INGOT, 1), ItemStack.of(ItemTypes.GOLDEN_APPLE, 1), ItemStack.of(ItemTypes.DIAMOND_ORE, 1), ItemStack.of(ItemTypes.EMERALD_ORE, 1),
             ItemStack.of(ItemTypes.GOLD_ORE, 1), ItemStack.of(ItemTypes.IRON_ORE, 1), ItemStack.of(ItemTypes.COAL_ORE, 1), ItemStack.of(ItemTypes.APPLE, 1), ItemStack.of(ItemTypes.STICK, 1),
@@ -251,7 +253,7 @@ public class SlotMachines {
 
                         if (x == 0 && y == 2) {
                             // Find sign.
-                            topRightSign = frontLocation.getTileEntity().filter(tileEntity -> tileEntity instanceof Sign).map(tileEntity -> (Sign) tileEntity).orElse(null);
+                            topRightSign = (Sign) frontLocation.getTileEntity().filter(tileEntity -> tileEntity instanceof Sign).orElse(null);
                             if (topRightSign == null) {
                                 logger.debug("Missing right sign. Got " + frontLocation.getBlockType().getName() + " at " + frontLocation.toString() + " Grid: " + x + "," + y);
                                 failed = true;
@@ -259,7 +261,7 @@ public class SlotMachines {
                             }
                         } else if (x == 2 && y == 2) {
                             // Find sign.
-                            topLeftSign = frontLocation.getTileEntity().filter(tileEntity -> tileEntity instanceof Sign).map(tileEntity -> (Sign) tileEntity).orElse(null);
+                            topLeftSign = (Sign) frontLocation.getTileEntity().filter(tileEntity -> tileEntity instanceof Sign).orElse(null);
                             if (topLeftSign == null) {
                                 logger.debug("Missing left sign. Got " + frontLocation.getBlockType().getName() + " at " + frontLocation.toString() + " Grid: " + x + "," + y);
                                 failed = true;
@@ -309,10 +311,11 @@ public class SlotMachines {
 
                             double maxPrize = price * slotTier.getMultiplier() * getHighestFactor().getMultiplier();
                             UniqueAccount ownerAccount = economyService.getOrCreateAccount(ownerUUID).get();
-
-                            if (ownerAccount.getBalance(economyService.getDefaultCurrency()).doubleValue() - maxPrize < lowerLimit) {
-                                player.sendMessage(getMessage("slots.out-of-money"));
-                                return;
+                            if (!ownerUUID.equals(ADMIN_UUID)) {
+                                if (ownerAccount.getBalance(economyService.getDefaultCurrency()).doubleValue() - maxPrize < lowerLimit) {
+                                    player.sendMessage(getMessage("slots.out-of-money"));
+                                    return;
+                                }
                             }
 
                             UniqueAccount account = economyService.getOrCreateAccount(player.getUniqueId()).get();
@@ -321,7 +324,9 @@ public class SlotMachines {
                                 double finalPrice = price;
                                 player.sendMessage(getMessage("slots.insufficient-funds", string -> string.replace("{amount}", String.valueOf(finalPrice))));
                             } else {
-                                ownerAccount.deposit(economyService.getDefaultCurrency(), BigDecimal.valueOf(price), Cause.source(container).build());
+                                if (!ownerUUID.equals(ADMIN_UUID)) {
+                                    ownerAccount.deposit(economyService.getDefaultCurrency(), BigDecimal.valueOf(price), Cause.source(container).build());
+                                }
 
                                 lockedMachines.add(location);
                                 List<ItemFrame> finalFrames = frames;
@@ -341,12 +346,17 @@ public class SlotMachines {
                                                 player.sendMessage(getMessage("slots.better-luck"));
                                             } else {
                                                 double prize = finalPrice1 * slotTier.getMultiplier() * data.getMultiplier();
-                                                player.sendMessage(getMessage("slots.you-won", string -> string.replace("{prize}", String.valueOf(prize))));
+                                                player.sendMessage(
+                                                        getMessage("slots.you-won", string -> string.replace("{prize}", String.valueOf(prize))));
 
-                                                EconomyService economyService = Sponge.getServiceManager().getRegistration(EconomyService.class).get().getProvider();
+                                                EconomyService economyService =
+                                                        Sponge.getServiceManager().getRegistration(EconomyService.class).get().getProvider();
                                                 UniqueAccount account = economyService.getOrCreateAccount(player.getUniqueId()).get();
-                                                account.deposit(economyService.getDefaultCurrency(), BigDecimal.valueOf(prize), Cause.source(container).build());
-                                                ownerAccount.withdraw(economyService.getDefaultCurrency(), BigDecimal.valueOf(prize), Cause.source(container).build());
+                                                account.deposit(economyService.getDefaultCurrency(), BigDecimal.valueOf(prize),
+                                                        Cause.source(container).build());
+                                                if (!ownerUUID.equals(ADMIN_UUID)) {
+                                                    ownerAccount.withdraw(economyService.getDefaultCurrency(), BigDecimal.valueOf(prize), Cause.source(container).build());
+                                                }
                                             }
 
                                             Sponge.getScheduler().createTaskBuilder().delayTicks(20 * 3).execute(task1 -> {
@@ -391,14 +401,15 @@ public class SlotMachines {
                                 double paymentPrice = price * slotTier.getMultiplier();
                                 EconomyService economyService = Sponge.getServiceManager().getRegistration(EconomyService.class).get().getProvider();
                                 UniqueAccount account = economyService.getOrCreateAccount(player.getUniqueId()).get();
+                                boolean isAdmin = topLeftSign.lines().get(1).toPlain().equals("ADMIN");
 
-                                if (account.withdraw(economyService.getDefaultCurrency(), BigDecimal.valueOf(paymentPrice), Cause.source(container).build()).getResult() != ResultType.SUCCESS) {
+                                if (!isAdmin && account.withdraw(economyService.getDefaultCurrency(), BigDecimal.valueOf(paymentPrice), Cause.source(container).build()).getResult() != ResultType.SUCCESS) {
                                     player.sendMessage(getMessage("slots.insufficient-funds", string -> string.replace("{amount}", String.valueOf(paymentPrice))));
                                 } else {
                                     topRightSign.offer(Keys.SIGN_LINES, Lists.newArrayList(getMessage("slots.sign.price"), Text.of(TextColors.RED, price), getMessage("slots.sign.limit"), Text.of(TextColors.RED, lowerLimit)));
                                     topLeftSign.offer(Keys.SIGN_LINES, Lists.newArrayList(getMessage("slots.sign.title"), Text.EMPTY, Text.EMPTY, Text.EMPTY));
 
-                                    SlotMachineOwnerData slotMachineOwnerData = new SlotMachineOwnerData(player.getUniqueId());
+                                    SlotMachineOwnerData slotMachineOwnerData = new SlotMachineOwnerData(isAdmin ? ADMIN_UUID : player.getUniqueId());
                                     topRightSign.offer(slotMachineOwnerData);
                                 }
                             }
