@@ -402,6 +402,10 @@ public class SlotMachines {
                                 EconomyService economyService = Sponge.getServiceManager().getRegistration(EconomyService.class).get().getProvider();
                                 UniqueAccount account = economyService.getOrCreateAccount(player.getUniqueId()).get();
                                 boolean isAdmin = topLeftSign.lines().get(1).toPlain().equals("ADMIN");
+                                if (isAdmin && !player.hasPermission("slots.create.admin")) {
+                                    player.sendMessage(getMessage("slots.permissions.admin"));
+                                    return;
+                                }
 
                                 if (!isAdmin && account.withdraw(economyService.getDefaultCurrency(), BigDecimal.valueOf(paymentPrice), Cause.source(container).build()).getResult() != ResultType.SUCCESS) {
                                     player.sendMessage(getMessage("slots.insufficient-funds", string -> string.replace("{amount}", String.valueOf(paymentPrice))));
