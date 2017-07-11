@@ -403,7 +403,7 @@ public class SlotMachines {
                                 UniqueAccount account = economyService.getOrCreateAccount(player.getUniqueId()).get();
                                 boolean isAdmin = topLeftSign.lines().get(1).toPlain().equals("ADMIN");
                                 if (isAdmin && !player.hasPermission("slots.create.admin")) {
-                                    player.sendMessage(getMessage("slots.permissions.admin"));
+                                    player.sendMessage(getMessage("slots.permission.admin"));
                                     return;
                                 }
 
