@@ -50,6 +50,7 @@ import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.block.InteractBlockEvent;
 import org.spongepowered.api.event.cause.Cause;
+import org.spongepowered.api.event.cause.EventContext;
 import org.spongepowered.api.event.entity.InteractEntityEvent;
 import org.spongepowered.api.event.filter.cause.First;
 import org.spongepowered.api.event.game.state.GamePreInitializationEvent;
@@ -279,6 +280,9 @@ public class SlotMachines {
                         player.sendMessage(getMessage("slots.invalid-slotmachine"));
                     }
                 } else {
+                    Cause.Builder causeBuilder = Cause.builder();
+                    causeBuilder.append(container);
+                    Cause cause = causeBuilder.build(EventContext.empty());
                     if (topLeftSign.lines().get(0).equals(getMessage("slots.sign.title"))) {
                         frames = Lists.reverse(frames);
                         UUID ownerUUID = topRightSign.get(SlotMachineKeys.SLOT_MACHINE_OWNER).orElse(null);
@@ -320,12 +324,12 @@ public class SlotMachines {
 
                             UniqueAccount account = economyService.getOrCreateAccount(player.getUniqueId()).get();
 
-                            if (account.withdraw(economyService.getDefaultCurrency(), BigDecimal.valueOf(price), Cause.source(container).build()).getResult() != ResultType.SUCCESS) {
+                            if (account.withdraw(economyService.getDefaultCurrency(), BigDecimal.valueOf(price), cause).getResult() != ResultType.SUCCESS) {
                                 double finalPrice = price;
                                 player.sendMessage(getMessage("slots.insufficient-funds", string -> string.replace("{amount}", String.valueOf(finalPrice))));
                             } else {
                                 if (!ownerUUID.equals(ADMIN_UUID)) {
-                                    ownerAccount.deposit(economyService.getDefaultCurrency(), BigDecimal.valueOf(price), Cause.source(container).build());
+                                    ownerAccount.deposit(economyService.getDefaultCurrency(), BigDecimal.valueOf(price), cause);
                                 }
 
                                 lockedMachines.add(location);
@@ -352,10 +356,9 @@ public class SlotMachines {
                                                 EconomyService economyService =
                                                         Sponge.getServiceManager().getRegistration(EconomyService.class).get().getProvider();
                                                 UniqueAccount account = economyService.getOrCreateAccount(player.getUniqueId()).get();
-                                                account.deposit(economyService.getDefaultCurrency(), BigDecimal.valueOf(prize),
-                                                        Cause.source(container).build());
+                                                account.deposit(economyService.getDefaultCurrency(), BigDecimal.valueOf(prize), cause);
                                                 if (!ownerUUID.equals(ADMIN_UUID)) {
-                                                    ownerAccount.withdraw(economyService.getDefaultCurrency(), BigDecimal.valueOf(prize), Cause.source(container).build());
+                                                    ownerAccount.withdraw(economyService.getDefaultCurrency(), BigDecimal.valueOf(prize), cause);
                                                 }
                                             }
 
@@ -407,7 +410,7 @@ public class SlotMachines {
                                     return;
                                 }
 
-                                if (!isAdmin && account.withdraw(economyService.getDefaultCurrency(), BigDecimal.valueOf(paymentPrice), Cause.source(container).build()).getResult() != ResultType.SUCCESS) {
+                                if (!isAdmin && account.withdraw(economyService.getDefaultCurrency(), BigDecimal.valueOf(paymentPrice), cause).getResult() != ResultType.SUCCESS) {
                                     player.sendMessage(getMessage("slots.insufficient-funds", string -> string.replace("{amount}", String.valueOf(paymentPrice))));
                                 } else {
                                     topRightSign.offer(Keys.SIGN_LINES, Lists.newArrayList(getMessage("slots.sign.price"), Text.of(TextColors.RED, price), getMessage("slots.sign.limit"), Text.of(TextColors.RED, lowerLimit)));
