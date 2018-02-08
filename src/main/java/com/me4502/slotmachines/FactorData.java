@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Me4502 (Matthew Miller)
+ * Copyright (c) Me4502 (Matthew Miller)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -43,7 +43,7 @@ public class FactorData implements DataSerializable {
 
     @Override
     public DataContainer toContainer() {
-        return new MemoryDataContainer()
+        return DataContainer.createNew()
                 .set(Queries.CONTENT_VERSION, getContentVersion())
                 .set(DataQuery.of("ItemStack"), this.itemStack)
                 .set(DataQuery.of("Multiplier"), this.multiplier);

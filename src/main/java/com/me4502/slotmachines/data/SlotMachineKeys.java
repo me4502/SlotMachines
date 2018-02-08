@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Me4502 (Matthew Miller)
+ * Copyright (c) Me4502 (Matthew Miller)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -32,6 +32,10 @@ import static org.spongepowered.api.data.key.KeyFactory.makeSingleKey;
 
 public class SlotMachineKeys {
 
-    public static Key<Value<UUID>> SLOT_MACHINE_OWNER = makeSingleKey(TypeToken.of(UUID.class),
-            new TypeToken<Value<UUID>>(){}, of("SlotMachineOwner"), "slots:slotmachineowner", "SlotMachineOwner");
+    public static Key<Value<UUID>> SLOT_MACHINE_OWNER = Key.builder()
+            .type(new TypeToken<Value<UUID>>(){})
+            .id("slotmachines:slotmachineowner")
+            .name("SlotMachineOwner")
+            .query(of("SlotMachineOwner"))
+            .build();
 }
