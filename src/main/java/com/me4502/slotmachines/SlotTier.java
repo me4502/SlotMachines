@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Me4502 (Madeline Miller)
+ * Copyright (c) Me4502 (Madeline Miller)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -41,7 +41,7 @@ public class SlotTier implements DataSerializable {
 
     @Override
     public DataContainer toContainer() {
-        return new MemoryDataContainer()
+        return DataContainer.createNew()
                 .set(Queries.CONTENT_VERSION, getContentVersion())
                 .set(DataQuery.of("BlockState"), this.blockState)
                 .set(DataQuery.of("Multiplier"), this.multiplier);
