@@ -53,6 +53,7 @@ import org.spongepowered.api.event.cause.Cause;
 import org.spongepowered.api.event.cause.EventContext;
 import org.spongepowered.api.event.entity.InteractEntityEvent;
 import org.spongepowered.api.event.filter.cause.First;
+import org.spongepowered.api.event.game.GameReloadEvent;
 import org.spongepowered.api.event.game.state.GamePreInitializationEvent;
 import org.spongepowered.api.event.game.state.GameStartedServerEvent;
 import org.spongepowered.api.event.game.state.GameStoppingServerEvent;
@@ -143,10 +144,8 @@ public class SlotMachines {
         Sponge.getDataManager().registerBuilder(SlotTier.class, new SlotTierBuilder());
     }
 
-    @Listener
-    public void onServerStart(GameStartedServerEvent event) {
+    public void loadConfig() {
         URL jarConfigFile = this.getClass().getResource("messages.conf");
-
         ConfigurationOptions options = ConfigurationOptions.defaults().setShouldCopyDefaults(true);
 
         ConfigurationLoader<CommentedConfigurationNode> loader = HoconConfigurationLoader.builder().setURL(jarConfigFile).setDefaultOptions(options).build();
@@ -174,6 +173,16 @@ public class SlotMachines {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    @Listener
+    public void onServerStart(GameStartedServerEvent event) {
+        loadConfig();
+    }
+
+    @Listener
+    public void onPluginReload(GameReloadEvent event) {
+        loadConfig();
     }
 
     @Listener
