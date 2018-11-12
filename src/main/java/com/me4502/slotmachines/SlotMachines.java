@@ -21,6 +21,7 @@
  */
 package com.me4502.slotmachines;
 
+import com.flowpowered.math.vector.Vector3i;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.reflect.TypeToken;
@@ -44,6 +45,7 @@ import org.spongepowered.api.block.BlockTypes;
 import org.spongepowered.api.block.tileentity.Sign;
 import org.spongepowered.api.config.DefaultConfig;
 import org.spongepowered.api.data.key.Keys;
+import org.spongepowered.api.entity.Entity;
 import org.spongepowered.api.entity.EntityTypes;
 import org.spongepowered.api.entity.hanging.ItemFrame;
 import org.spongepowered.api.entity.living.player.Player;
@@ -77,11 +79,16 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.URL;
 import java.nio.file.Path;
-import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+import java.util.Optional;
+import java.util.ArrayList;
+import java.util.Objects;
 
 @Plugin(
         id = "slotmachines",
@@ -199,12 +206,17 @@ public class SlotMachines {
 
     @Listener
     public void onEntityInteract(InteractEntityEvent event, @First Player player) {
-        if (event.getTargetEntity() instanceof ItemFrame) {
-            for (Location<?> location : lockedMachines) {
-                if (location.getBlockPosition().distance(event.getTargetEntity().getLocation().getBlockPosition()) < 5) {
-                    event.setCancelled(true);
-                    break;
-                }
+    	Entity target = event.getTargetEntity();
+        if (target instanceof ItemFrame == false) {
+        	return;
+        }
+        
+        for (Location<?> location : lockedMachines) {
+        	Vector3i position = target.getLocation().getBlockPosition();
+        	float distance = location.getBlockPosition().distance( position );
+            if (distance < 5F) {
+                event.setCancelled(true);
+                break;
             }
         }
     }
@@ -449,11 +461,20 @@ public class SlotMachines {
 
     private Optional<FactorData> getFactor(List<ItemStack> results) {
         FactorData bestMatch = null;
+        
         for (FactorData data : factors.getValue()) {
-            if (data.matches(results)) {
-                if (bestMatch == null || bestMatch.getMultiplier() < data.getMultiplier()) {
-                    bestMatch = data;
-                }
+            if (data.matches(results) == false) {
+            	continue;
+            }
+            
+            if (bestMatch == null) {
+                bestMatch = data;
+                continue;
+            }
+            
+            if (bestMatch.getMultiplier() < data.getMultiplier()) {
+                bestMatch = data;
+                continue;
             }
         }
 
@@ -462,9 +483,16 @@ public class SlotMachines {
 
     private FactorData getHighestFactor() {
         FactorData bestMatch = null;
+        
         for (FactorData data : factors.getValue()) {
-            if (bestMatch == null || bestMatch.getMultiplier() < data.getMultiplier()) {
+            if (bestMatch == null) {
                 bestMatch = data;
+                continue;
+            }
+            
+            if (bestMatch.getMultiplier() < data.getMultiplier()) {
+                bestMatch = data;
+                continue;
             }
         }
 
